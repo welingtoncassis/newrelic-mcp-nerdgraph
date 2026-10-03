@@ -62,7 +62,11 @@ jobs:
       - name: Bandit
         run: uv run bandit -c pyproject.toml -r src -q
       - name: Dependency audit
-        run: uv run pip-audit --strict
+        # Audit the locked dependency set. --no-emit-project leaves out this
+        # package itself, which has no PyPI release to audit against.
+        run: |
+          uv export --all-extras --no-emit-project --format requirements-txt > audit-requirements.txt
+          uv run pip-audit --strict -r audit-requirements.txt
 
   build:
     runs-on: ubuntu-latest

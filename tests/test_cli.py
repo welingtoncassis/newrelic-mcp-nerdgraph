@@ -19,9 +19,9 @@ def test_version_flag_exits_cleanly():
     assert excinfo.value.code == 0
 
 
-def test_missing_api_key_exits_with_guidance(monkeypatch, capsys):
+def test_missing_api_key_exits_with_guidance(monkeypatch, capsys, tmp_path):
     monkeypatch.delenv("NEW_RELIC_API_KEY", raising=False)
-    monkeypatch.chdir("/tmp")  # avoid picking up a developer .env  # noqa: S108
+    monkeypatch.chdir(tmp_path)  # an empty cwd, so no developer .env is picked up
     from newrelic_mcp import config
 
     config.get_settings.cache_clear()
