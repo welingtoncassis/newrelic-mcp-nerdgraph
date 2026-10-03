@@ -1,0 +1,116 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "newrelic-mcp-nerdgraph"
+version = "0.1.0"
+description = "Open source MCP server for New Relic observability, built on NerdGraph and NRQL."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Welington Assis" }]
+keywords = ["mcp", "new-relic", "nerdgraph", "nrql", "observability", "sre"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Monitoring",
+    "Typing :: Typed",
+]
+dependencies = [
+    "mcp>=2.0.0",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+]
+
+[project.optional-dependencies]
+cli = ["typer>=0.12"]
+
+[project.urls]
+Homepage = "https://github.com/welingtoncassis/newrelic-mcp-nerdgraph"
+Documentation = "https://github.com/welingtoncassis/newrelic-mcp-nerdgraph#readme"
+Repository = "https://github.com/welingtoncassis/newrelic-mcp-nerdgraph"
+Issues = "https://github.com/welingtoncassis/newrelic-mcp-nerdgraph/issues"
+Changelog = "https://github.com/welingtoncassis/newrelic-mcp-nerdgraph/blob/main/CHANGELOG.md"
+
+[project.scripts]
+newrelic-mcp = "newrelic_mcp.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "respx>=0.21",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "bandit>=1.7",
+    "pip-audit>=2.7",
+    "pre-commit>=3.7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/newrelic_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle / pyflakes
+    "I",             # isort
+    "B",             # bugbear
+    "UP",            # pyupgrade
+    "S",             # bandit-ish
+    "ANN",           # annotations
+    "RUF",
+]
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "ANN"]
+# S608 flags string-built queries. Composing NRQL is what these modules are for,
+# and every interpolated value goes through security.nrql_guard.escape_nrql_string.
+"src/newrelic_mcp/services/logs.py" = ["S608"]
+"src/newrelic_mcp/services/traces.py" = ["S608"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unreachable = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# Tests are checked for obvious mistakes, not annotated exhaustively.
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = false
+warn_return_any = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-q --cov=newrelic_mcp --cov-report=term-missing"
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+# B608: NRQL is composed as a string by design; values are escaped in security.nrql_guard.
+# B311: random is used only for retry jitter, never for anything security relevant.
+skips = ["B608", "B311"]

@@ -1,0 +1,38 @@
+name: New tool
+description: Propose a tool the server should expose
+labels: ["enhancement", "tool"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What question should the tool answer
+      description: Phrase it the way a user would ask an agent.
+    validations:
+      required: true
+
+  - type: textarea
+    id: query
+    attributes:
+      label: NRQL or NerdGraph behind it
+      description: The query you would run by hand today.
+      render: sql
+    validations:
+      required: true
+
+  - type: textarea
+    id: why-not-existing
+    attributes:
+      label: Why run_nrql is not enough
+      description: >
+        A dedicated tool is worth it when it saves the model from composing a
+        subtle query, or when the result needs reshaping. Say which applies.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This tool only reads data
+        - label: I am willing to open the pull request
